@@ -1,0 +1,489 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Header / Brand Intro -->
+    <header class="dashboard-header">
+        <div class="header-main">
+            <div class="header-badge">
+                <span class="pulse-dot"></span>
+                <span>Automated Export Workspace</span>
+            </div>
+            <h1 class="header-title">Singing Bowl Export Automation System</h1>
+            <p class="header-subtitle">
+                Comprehensive B2B lead discovery, multi-source extraction, AI qualification, and automated catalog outreach for Nepalese artisan export.
+            </p>
+        </div>
+        <div class="header-stats-pill">
+            <div class="pill-item">
+                <span class="pill-label">Status</span>
+                <span class="pill-value text-success">Live Engine</span>
+            </div>
+            <div class="pill-divider"></div>
+            <div class="pill-item">
+                <span class="pill-label">Catalog</span>
+                <span class="pill-value" id="headerCatalogStatus">{{ catalog_name if catalog_name else 'Not Uploaded' }}</span>
+            </div>
+            <div class="pill-divider"></div>
+            <div class="pill-item">
+                <span class="pill-label">Gmail SMTP</span>
+                <span class="pill-value {{ 'text-success' if gmail_configured else 'text-muted' }}">{{ 'Configured' if gmail_configured else 'Pending .env' }}</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Metrics Cards Overview -->
+    <section class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-icon bg-indigo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+            </div>
+            <div class="metric-details">
+                <span class="metric-label">Total Buyer Leads</span>
+                <span class="metric-value" id="metricTotalLeads">{{ stats.total_leads }}</span>
+                <span class="metric-sub">Discovered in database</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon bg-amber">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+            </div>
+            <div class="metric-details">
+                <span class="metric-label">Contacted Buyers</span>
+                <span class="metric-value" id="metricContacted">{{ stats.contacted }}</span>
+                <span class="metric-sub">Outreach dispatched</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon bg-emerald">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                </svg>
+            </div>
+            <div class="metric-details">
+                <span class="metric-label">Emails Delivered</span>
+                <span class="metric-value" id="metricEmailsSent">{{ stats.emails_sent }}</span>
+                <span class="metric-sub">Personalized with catalog</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon bg-rose">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+            </div>
+            <div class="metric-details">
+                <span class="metric-label">Failed / Issues</span>
+                <span class="metric-value" id="metricFailed">{{ stats.failed }}</span>
+                <span class="metric-sub">Delivery issues / bounced</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workspace Grid: Search Leads & Catalog Upload -->
+    <div class="dashboard-columns">
+        <!-- Search Leads Section -->
+        <section class="card workflow-card">
+            <div class="card-header">
+                <div class="card-title-group">
+                    <span class="badge badge-step">Step 1</span>
+                    <h3 class="card-title">Search Leads</h3>
+                </div>
+                <span class="status-pill status-ready">Multi-Source Ready</span>
+            </div>
+            <div class="card-body">
+                <p class="card-description">
+                    Discover wholesale importers, sound healing centers, meditation studios, and yoga supply distributors worldwide.
+                </p>
+                <form id="searchLeadsForm" onsubmit="handleSearchLeads(event)">
+                    <div class="form-group">
+                        <label for="searchQuery" class="form-label">Search Query / Keywords</label>
+                        <input type="text" id="searchQuery" name="query" class="form-control" placeholder="e.g. Singing bowl wholesale distributor, sound healing studio" value="Tibetan Singing Bowl wholesale importer" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="targetCountry" class="form-label">Target Country / Region</label>
+                            <select id="targetCountry" name="country" class="form-control">
+                                <option value="">All Regions (Global)</option>
+                                <option value="US" selected>United States</option>
+                                <option value="DE">Germany</option>
+                                <option value="UK">United Kingdom</option>
+                                <option value="FR">France</option>
+                                <option value="NL">Netherlands</option>
+                                <option value="AU">Australia</option>
+                                <option value="JP">Japan</option>
+                                <option value="CA">Canada</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="leadLimit" class="form-label">Max Leads to Extract</label>
+                            <select id="leadLimit" name="limit" class="form-control">
+                                <option value="10">10 Leads</option>
+                                <option value="25" selected>25 Leads</option>
+                                <option value="50">50 Leads</option>
+                                <option value="100">100 Leads</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Buyer Discovery Sources</label>
+                        <div class="source-checkbox-grid">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="discoverySource" value="serper" checked> Google / Serper
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="discoverySource" value="tradekey" checked> TradeKey
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="discoverySource" value="europages" checked> Europages
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="discoverySource" value="kompass" checked> Kompass
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="discoverySource" value="indiamart"> IndiaMART
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="discoverySource" value="tradeindia"> TradeIndia
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="discoverySource" value="alibaba"> Alibaba
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="discoverySource" value="globalsources"> Global Sources
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="card-footer-actions">
+                        <button type="submit" class="btn btn-primary" id="searchBtn">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            Search Potential Buyers
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Catalog Upload Section -->
+        <section class="card workflow-card">
+            <div class="card-header">
+                <div class="card-title-group">
+                    <span class="badge badge-step">Step 2</span>
+                    <h3 class="card-title">Catalog Upload</h3>
+                </div>
+                <span class="status-pill status-active" id="catalogPill">{{ 'Catalog Attached' if catalog_name else 'Upload Pending' }}</span>
+            </div>
+            <div class="card-body">
+                <p class="card-description">
+                    Upload your export product catalog or presentation PDF to attach automatically to outreach emails.
+                </p>
+                <form id="catalogUploadForm" enctype="multipart/form-data" onsubmit="handleCatalogUpload(event)">
+                    <div class="upload-dropzone" id="dropzone">
+                        <input type="file" id="catalogFile" name="catalog_pdf" accept=".pdf" class="file-input" onchange="updateFileName(this)">
+                        <div class="dropzone-content">
+                            <div class="dropzone-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="12" y1="18" x2="12" y2="12"></line>
+                                    <line x1="9" y1="15" x2="12" y2="12"></line>
+                                    <line x1="15" y1="15" x2="12" y2="12"></line>
+                                </svg>
+                            </div>
+                            <h4 class="dropzone-title">Upload Singing Bowl Catalog (PDF)</h4>
+                            <p class="dropzone-help">Drag and drop file here or click to browse (Max 16MB)</p>
+                            <span class="file-chosen-name" id="chosenFileName">{{ catalog_name if catalog_name else 'No file selected' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="card-footer-actions">
+                        <button type="submit" class="btn btn-outline" id="uploadBtn">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            Upload Catalog
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <!-- Step 3: Launch Personalized Campaign Outreach Card -->
+    <section class="card workflow-card">
+        <div class="card-header">
+            <div class="card-title-group">
+                <span class="badge badge-step">Step 3</span>
+                <h3 class="card-title">Launch Automated Outreach Campaign</h3>
+            </div>
+            <span class="status-pill status-ready">Gmail Automated Outreach</span>
+        </div>
+        <div class="card-body">
+            <p class="card-description">
+                Send personalized B2B export emails with your attached Singing Bowl Catalog PDF directly via Gmail.
+                System automatically ensures previously contacted buyers are <strong>never contacted twice</strong>.
+            </p>
+            <form id="campaignForm" onsubmit="handleSendCampaign(event)">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="targetAudience" class="form-label">Target Audience Filter</label>
+                        <select id="targetAudience" name="target_filter" class="form-control">
+                            <option value="BUSINESS_ONLY" selected>Business Qualified Leads Only (Recommended)</option>
+                            <option value="ALL_WITH_EMAIL">All Discovered Leads with Valid Email</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="campaignName" class="form-label">Campaign Identifier</label>
+                        <input type="text" id="campaignName" name="campaign_name" class="form-control" value="Singing Bowl Export Outreach 2026">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="campaignSubject" class="form-label">Email Subject Line</label>
+                    <input type="text" id="campaignSubject" name="subject" class="form-control" value="{{ default_subject }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="campaignBody" class="form-label">Personalized Email Body Template</label>
+                    <textarea id="campaignBody" name="body" class="form-control" rows="8" required>{{ default_body }}</textarea>
+                    <span class="form-text-muted">Personalization tokens: <code>{buyer_name}</code>, <code>{company_name}</code>, <code>{country}</code>, <code>{website}</code></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <input type="checkbox" id="attachCatalogCheck" name="attach_catalog" checked> Attach Uploaded Catalog PDF (<span id="attachCatalogLabel">{{ catalog_name if catalog_name else 'catalog.pdf' }}</span>)
+                    </label>
+                </div>
+
+                <div class="card-footer-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-outline" id="previewBtn" onclick="handlePreviewEmail()">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        Preview Message
+                    </button>
+                    <button type="button" class="btn btn-outline" id="testSendBtn" onclick="handleSendTestEmail()">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 2L11 13"></path>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                        Send Test Email to Myself
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="sendCampaignBtn">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                        Send Personalized Emails via Gmail
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Leads Table & Verification Section -->
+    <section class="card table-card">
+        <div class="card-header">
+            <div>
+                <h3 class="card-title">Extracted Buyers & Lead Pipeline</h3>
+                <p class="card-description">Structured records stored in CSV with email validation and Gemini classification tags.</p>
+            </div>
+            <div class="table-actions">
+                <a href="/api/export/buyers-csv" class="btn btn-outline" title="Download buyers.csv">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Export CSV</span>
+                </a>
+                <button type="button" class="btn btn-outline" id="verifyEmailsBtn" onclick="handleVerifyEmails()">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <span>Cross-Check Emails</span>
+                </button>
+                <button type="button" class="btn btn-ai-classify" id="classifyBtn" onclick="handleClassifyLeads()">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                    <span>AI Classify Leads</span>
+                    <span class="badge-gemini-sub">Powered by Gemini</span>
+                </button>
+                <span class="badge badge-info" id="tableRecordCountBadge">{{ buyers|length }} Records</span>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Buyer Name</th>
+                        <th>Company Name</th>
+                        <th>Email</th>
+                        <th>Website</th>
+                        <th>Country</th>
+                        <th>Source</th>
+                        <th>Classification</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="buyersTableBody">
+                    {% if buyers %}
+                        {% for buyer in buyers %}
+                            <tr>
+                                <td class="font-medium">{{ buyer.buyer_name }}</td>
+                                <td>{{ buyer.company_name }}</td>
+                                <td><code>{{ buyer.email if buyer.email else '—' }}</code></td>
+                                <td>
+                                    {% if buyer.website %}
+                                        <a href="{{ buyer.website }}" target="_blank" class="table-link">{{ buyer.website }}</a>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge badge-country">{{ buyer.country if buyer.country else '—' }}</span></td>
+                                <td>{{ buyer.source_platform }}</td>
+                                <td>
+                                    <span class="badge badge-{{ 'business' if buyer.classification == 'BUSINESS' else 'individual' if buyer.classification == 'INDIVIDUAL' else 'neutral' }}">
+                                        {{ buyer.classification }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-tag status-{{ buyer.status|lower }}">{{ buyer.status }}</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr class="empty-row">
+                            <td colspan="8">
+                                <div class="empty-state">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <path d="M8 12h8"></path>
+                                    </svg>
+                                    <p class="empty-text">No buyer leads currently loaded.</p>
+                                    <span class="empty-subtext">Use the "Search Leads" section above or trigger lead discovery to populate this database.</span>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Table 2: Campaign Dispatch History & Audit Log -->
+    <section class="card table-card">
+        <div class="card-header">
+            <div>
+                <h3 class="card-title">Outreach Dispatch History & Delivery Logs</h3>
+                <p class="card-description">Comprehensive audit trail of sent campaigns and catalog deliveries maintained in <code>sent_log.csv</code>.</p>
+            </div>
+            <div class="table-actions">
+                <a href="/api/export/sent-logs-csv" class="btn btn-outline" title="Download sent_log.csv">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Export Log CSV</span>
+                </a>
+                <span class="badge badge-info" id="sentLogCountBadge">{{ sent_logs|length }} Sent Entries</span>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Recipient Email</th>
+                        <th>Buyer / Company</th>
+                        <th>Campaign</th>
+                        <th>Catalog Attached</th>
+                        <th>Sent At</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="sentLogsTableBody">
+                    {% if sent_logs %}
+                        {% for log in sent_logs %}
+                            <tr>
+                                <td><code>{{ log.buyer_email }}</code></td>
+                                <td class="font-medium">{{ log.buyer_name }}</td>
+                                <td>{{ log.campaign_name }}</td>
+                                <td>{{ log.catalog_file if log.catalog_file else '—' }}</td>
+                                <td class="text-muted">{{ log.sent_at[:19].replace('T', ' ') if log.sent_at else '—' }}</td>
+                                <td>
+                                    <span class="status-tag status-{{ log.status|lower }}">{{ log.status }}</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr class="empty-row">
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <p class="empty-text">No campaign emails dispatched yet.</p>
+                                    <span class="empty-subtext">Dispatched outreach emails will be logged here to guarantee no duplicate contacts.</span>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<!-- Email Preview Modal -->
+<div id="previewModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 class="modal-title">Live Personalized Email Preview</h3>
+            <button type="button" class="modal-close" onclick="closePreviewModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="preview-meta-row">
+                <span class="preview-label">Sample Lead:</span>
+                <strong id="previewLeadName">—</strong>
+            </div>
+            <div class="preview-meta-row">
+                <span class="preview-label">Subject:</span>
+                <span id="previewSubjectText" class="preview-subject-content">—</span>
+            </div>
+            <div class="preview-meta-row">
+                <span class="preview-label">Attachment:</span>
+                <span class="badge badge-info" id="previewAttachmentBadge">catalog.pdf</span>
+            </div>
+            <hr style="margin: 12px 0; border: none; border-top: 1px solid var(--border-color);">
+            <div class="preview-label" style="margin-bottom: 6px;">Email Body:</div>
+            <pre id="previewBodyText" class="preview-body-content"></pre>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closePreviewModal()">Close Preview</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

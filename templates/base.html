@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Singing Bowl Export Desk | API 3 - EXPORT{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_static('css/style.css') if url_static is defined else url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M8 12a4 4 0 0 1 8 0"></path>
+                        <path d="M12 2v2"></path>
+                        <path d="M12 20v2"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="brand-title">Singing Bowl Export Desk</h1>
+                    <p class="brand-subtitle">Automated B2B Outreach & Lead Intelligence</p>
+                </div>
+            </div>
+
+            <div class="nav-status">
+                <span class="status-indicator active" id="systemStatusDot"></span>
+                <span class="status-text" id="systemStatusText">System Operational</span>
+                <span class="badge badge-version">v1.0.0</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-content">
+        <!-- Flash messages -->
+        <div class="flash-messages-container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} animate-fade-in">
+                            <span>{{ message }}</span>
+                            <button class="alert-close" onclick="this.parentElement.remove()">&times;</button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2026 Singing Bowl Export Automation System. All rights reserved.</p>
+            <p class="footer-meta">API 3 Assessment Project &bull; Built with Flask &bull; Ready for Vercel</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_static('js/app.js') if url_static is defined else url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

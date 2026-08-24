@@ -1,0 +1,53 @@
+# Python cache & virtual environment
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment variables & local secrets
+.env
+*.env
+.env.local
+credentials.json
+token.json
+
+# Uploaded files (keep folder with .gitkeep)
+uploads/*
+!uploads/.gitkeep
+
+# Local data files if populated locally
+# data/*.csv
+# !data/.gitkeep
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Vercel output
+.vercel/
