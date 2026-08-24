@@ -19,7 +19,14 @@ from services.verification_service import VerificationService
 
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+TEMPLATE_DIR = Config.BASE_DIR / "templates"
+STATIC_DIR = Config.BASE_DIR / "static"
+
+app = Flask(
+    __name__,
+    template_folder=str(TEMPLATE_DIR),
+    static_folder=str(STATIC_DIR)
+)
 app.config.from_object(Config)
 
 # Ensure data and upload directories exist (safely handles local & Vercel /tmp)
