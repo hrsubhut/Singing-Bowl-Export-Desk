@@ -10,8 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Live Workspace & Data Refresh handler
-function handleRefreshData() {
-    const topBtn = document.getElementById('topRefreshBtn');
+function handleRefreshData(showToast = true) {
+    const topBtn = document.getElementById('headerGlobalRefreshBtn');
     if (topBtn) {
         topBtn.style.opacity = '0.6';
         topBtn.disabled = true;
@@ -42,7 +42,9 @@ function handleRefreshData() {
                 if (headerPill) headerPill.textContent = data.catalog_name;
                 if (attachLabel) attachLabel.textContent = data.catalog_name;
             }
-            displayFlashMessage(`Workspace refreshed: ${data.total_leads || 0} leads loaded.`, 'info');
+            if (showToast) {
+                displayFlashMessage(`Workspace refreshed: ${data.total_leads || 0} leads loaded from CSV database.`, 'info');
+            }
         })
         .catch((err) => {
             console.error('Refresh error:', err);
@@ -314,6 +316,34 @@ function handleSearchLeads(event) {
     btn.innerHTML = `<span class="btn-spinner"></span> Searching across ${selectedSources.length} source(s)...`;
     btn.disabled = true;
 
+    // Show dynamic progress box
+    const progressContainer = document.getElementById('searchProgressContainer');
+    const progressTitle = document.getElementById('searchProgressTitle');
+    const progressSub = document.getElementById('searchProgressSub');
+    const progressBar = document.getElementById('searchProgressBar');
+
+    if (progressContainer) {
+        progressContainer.style.display = 'block';
+        if (progressBar) progressBar.style.width = '20%';
+        if (progressTitle) progressTitle.textContent = `Searching Across ${selectedSources.length} Source(s)...`;
+        if (progressSub) progressSub.textContent = 'Connecting to Google/Serper & B2B directories...';
+    }
+
+    let progressStep = 0;
+    const progressInterval = setInterval(() => {
+        progressStep++;
+        if (progressStep === 1) {
+            if (progressBar) progressBar.style.width = '45%';
+            if (progressSub) progressSub.textContent = 'Extracting wholesale buyer companies & domains...';
+        } else if (progressStep === 2) {
+            if (progressBar) progressBar.style.width = '70%';
+            if (progressSub) progressSub.textContent = 'Crawling public website contact pages (/contact, /about, /wholesale)...';
+        } else if (progressStep === 3) {
+            if (progressBar) progressBar.style.width = '88%';
+            if (progressSub) progressSub.textContent = 'Extracting emails & performing 3-tier deduplication...';
+        }
+    }, 1800);
+
     fetch('/api/search', {
         method: 'POST',
         headers: {
@@ -334,6 +364,10 @@ function handleSearchLeads(event) {
         return data;
     })
     .then((data) => {
+        clearInterval(progressInterval);
+        if (progressBar) progressBar.style.width = '100%';
+        if (progressSub) progressSub.textContent = 'Discovery & enrichment complete!';
+
         const sourcesSearched = data.sources ? Object.keys(data.sources).length : selectedSources.length;
         const rawResults = data.raw_results !== undefined ? data.raw_results : (data.search_results || 0);
         const uniqueBuyers = data.unique_leads !== undefined ? data.unique_leads : (data.count || 0);
@@ -373,10 +407,15 @@ function handleSearchLeads(event) {
         }
     })
     .catch((err) => {
+        clearInterval(progressInterval);
         console.error('Lead search error:', err);
         displayFlashMessage(err.message || 'Failed to search leads. Please check your API configuration.', 'danger');
     })
     .finally(() => {
+        clearInterval(progressInterval);
+        setTimeout(() => {
+            if (progressContainer) progressContainer.style.display = 'none';
+        }, 1200);
         btn.innerHTML = originalButtonHtml;
         btn.disabled = false;
     });

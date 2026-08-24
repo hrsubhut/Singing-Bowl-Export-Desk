@@ -30,12 +30,12 @@
                 <span class="pill-value {{ 'text-success' if gmail_configured else 'text-muted' }}">{{ 'Configured' if gmail_configured else 'Pending .env' }}</span>
             </div>
             <div class="pill-divider"></div>
-            <button type="button" class="btn btn-outline" id="topRefreshBtn" onclick="handleRefreshData()" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 20px; border-color: var(--border-color); color: var(--text-main);" title="Sync workspace from CSV storage">
+            <button type="button" class="btn-refresh-header" id="headerGlobalRefreshBtn" onclick="handleRefreshData(true)" title="Instantly refresh all tables, metrics, and catalog status">
                 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
                     <polyline points="23 4 23 10 17 10"></polyline>
                     <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
                 </svg>
-                <span>Refresh</span>
+                <span>Refresh Everything</span>
             </button>
         </div>
     </header>
@@ -187,6 +187,20 @@
                             </svg>
                             Search Potential Buyers
                         </button>
+                    </div>
+
+                    <!-- Live Dynamic Search Progress Loading Box -->
+                    <div id="searchProgressContainer" class="search-progress-box" style="display: none;">
+                        <div class="search-progress-header">
+                            <div class="search-spinner-ring"></div>
+                            <div class="search-progress-text-wrap">
+                                <strong id="searchProgressTitle">Searching Across Multi-Sources...</strong>
+                                <span id="searchProgressSub">Connecting to Google/Serper & B2B platforms...</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar-track">
+                            <div id="searchProgressBar" class="progress-bar-fill"></div>
+                        </div>
                     </div>
                 </form>
             </div>
