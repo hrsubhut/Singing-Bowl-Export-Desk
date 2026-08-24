@@ -8,6 +8,8 @@ ENV_FILE = BASE_DIR / ".env"
 # Load environment variables explicitly with override before Config class definition
 load_dotenv(ENV_FILE, override=True)
 
+IS_VERCEL = bool(os.getenv("VERCEL"))
+
 
 class Config:
     """Application configuration settings."""
@@ -15,10 +17,16 @@ class Config:
     FLASK_ENV = os.getenv("FLASK_ENV", "development")
     DEBUG = os.getenv("FLASK_DEBUG", "True").lower() in ("true", "1", "yes")
     PORT = int(os.getenv("PORT", 5000))
+    BASE_DIR = BASE_DIR
 
-    # Storage paths
-    DATA_DIR = BASE_DIR / "data"
-    UPLOAD_FOLDER = BASE_DIR / "uploads"
+    # Storage paths (Use /tmp on Vercel serverless to avoid read-only filesystem crash)
+    if IS_VERCEL:
+        DATA_DIR = Path("/tmp/data")
+        UPLOAD_FOLDER = Path("/tmp/uploads")
+    else:
+        DATA_DIR = BASE_DIR / "data"
+        UPLOAD_FOLDER = BASE_DIR / "uploads"
+
     BUYERS_CSV = DATA_DIR / "buyers.csv"
     SENT_LOG_CSV = DATA_DIR / "sent_log.csv"
 
@@ -38,6 +46,6 @@ class Config:
     _raw_model = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
     GEMINI_MODEL = "gemini-3.6-flash" if _raw_model == "gemini-2.5-flash" else _raw_model
 
-    # Future Gmail settings
+    # Gmail settings
     GMAIL_USER = os.getenv("GMAIL_USER", "")
     GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD", "")

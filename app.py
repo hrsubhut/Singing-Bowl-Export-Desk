@@ -4,6 +4,7 @@ Flask web application for Singing Bowl export business.
 
 import csv
 import os
+import shutil
 import logging
 from pathlib import Path
 from datetime import datetime, timezone
@@ -21,9 +22,26 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Ensure data and upload directories exist
-os.makedirs(app.config["DATA_DIR"], exist_ok=True)
-os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+# Ensure data and upload directories exist (safely handles local & Vercel /tmp)
+try:
+    os.makedirs(app.config["DATA_DIR"], exist_ok=True)
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+    # If running on Vercel, copy initial seed data to writable /tmp directory
+    if os.getenv("VERCEL"):
+        seed_data_dir = Config.BASE_DIR / "data"
+        seed_buyers = seed_data_dir / "buyers.csv"
+        seed_sent_log = seed_data_dir / "sent_log.csv"
+
+        target_buyers = app.config["BUYERS_CSV"]
+        target_sent = app.config["SENT_LOG_CSV"]
+
+        if seed_buyers.is_file() and not target_buyers.is_file():
+            shutil.copy2(str(seed_buyers), str(target_buyers))
+        if seed_sent_log.is_file() and not target_sent.is_file():
+            shutil.copy2(str(seed_sent_log), str(target_sent))
+except Exception as init_err:
+    logger.warning(f"Storage directory initialization notice: {init_err}")
 
 # Initialize service instances
 hunter_service = HunterService(api_key=app.config.get("HUNTER_API_KEY", ""))
