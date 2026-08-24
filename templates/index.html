@@ -29,6 +29,14 @@
                 <span class="pill-label">Gmail SMTP</span>
                 <span class="pill-value {{ 'text-success' if gmail_configured else 'text-muted' }}">{{ 'Configured' if gmail_configured else 'Pending .env' }}</span>
             </div>
+            <div class="pill-divider"></div>
+            <button type="button" class="btn btn-outline" id="topRefreshBtn" onclick="handleRefreshData()" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 20px; border-color: var(--border-color); color: var(--text-main);" title="Sync workspace from CSV storage">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+                <span>Refresh</span>
+            </button>
         </div>
     </header>
 
@@ -312,6 +320,13 @@
                 <p class="card-description">Structured records stored in CSV with email validation and Gemini classification tags.</p>
             </div>
             <div class="table-actions">
+                <button type="button" class="btn btn-outline" onclick="handleRefreshData()" title="Reload leads from CSV">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                    </svg>
+                    <span>Refresh</span>
+                </button>
                 <a href="/api/export/buyers-csv" class="btn btn-outline" title="Download buyers.csv">
                     <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -404,6 +419,13 @@
                 <p class="card-description">Comprehensive audit trail of sent campaigns and catalog deliveries maintained in <code>sent_log.csv</code>.</p>
             </div>
             <div class="table-actions">
+                <button type="button" class="btn btn-outline" onclick="handleRefreshData()" title="Reload send logs">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                    </svg>
+                    <span>Refresh</span>
+                </button>
                 <a href="/api/export/sent-logs-csv" class="btn btn-outline" title="Download sent_log.csv">
                     <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>

@@ -200,6 +200,26 @@ def health():
     }), 200
 
 
+@app.route("/api/refresh-data", methods=["GET"])
+def refresh_data_api():
+    """Retrieve up-to-date buyers, sent logs, stats, and catalog info."""
+    buyers = load_buyers_from_csv()
+    sent_logs = load_sent_log_from_csv()
+    stats = compute_dashboard_stats(buyers, sent_logs)
+    catalog_path = get_active_catalog_path()
+    catalog_name = os.path.basename(catalog_path) if catalog_path else None
+
+    return jsonify({
+        "success": True,
+        "buyers": buyers,
+        "sent_logs": sent_logs,
+        "stats": stats,
+        "catalog_name": catalog_name,
+        "gmail_configured": gmail_service.is_configured(),
+        "total_leads": len(buyers)
+    }), 200
+
+
 @app.route("/api/search", methods=["POST"])
 def search_leads_api():
     """Endpoint to trigger multi-source lead discovery with cross-source deduplication and email enrichment."""

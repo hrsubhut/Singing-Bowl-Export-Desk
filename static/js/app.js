@@ -9,6 +9,53 @@ document.addEventListener('DOMContentLoaded', () => {
     initCatalogStatusCheck();
 });
 
+// Live Workspace & Data Refresh handler
+function handleRefreshData() {
+    const topBtn = document.getElementById('topRefreshBtn');
+    if (topBtn) {
+        topBtn.style.opacity = '0.6';
+        topBtn.disabled = true;
+    }
+
+    fetch('/api/refresh-data')
+        .then(async (res) => {
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                throw new Error(data.error || 'Failed to refresh data.');
+            }
+            return data;
+        })
+        .then((data) => {
+            if (data.buyers) renderAllBuyersTable(data.buyers);
+            if (data.sent_logs) renderSentLogsTable(data.sent_logs);
+            if (data.stats) updateDashboardStats(data.stats);
+            if (data.catalog_name) {
+                const chosenSpan = document.getElementById('chosenFileName');
+                const catalogPill = document.getElementById('catalogPill');
+                const headerPill = document.getElementById('headerCatalogStatus');
+                const attachLabel = document.getElementById('attachCatalogLabel');
+                if (chosenSpan) chosenSpan.textContent = data.catalog_name;
+                if (catalogPill) {
+                    catalogPill.textContent = 'Catalog Attached';
+                    catalogPill.className = 'status-pill status-ready';
+                }
+                if (headerPill) headerPill.textContent = data.catalog_name;
+                if (attachLabel) attachLabel.textContent = data.catalog_name;
+            }
+            displayFlashMessage(`Workspace refreshed: ${data.total_leads || 0} leads loaded.`, 'info');
+        })
+        .catch((err) => {
+            console.error('Refresh error:', err);
+            displayFlashMessage(err.message || 'Failed to refresh data.', 'danger');
+        })
+        .finally(() => {
+            if (topBtn) {
+                topBtn.style.opacity = '1';
+                topBtn.disabled = false;
+            }
+        });
+}
+
 // Drag and drop PDF upload initialization
 function initDragAndDrop() {
     const dropzone = document.getElementById('dropzone');
