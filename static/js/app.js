@@ -102,57 +102,52 @@ function updateFileName(input) {
     }
 }
 
-// Display floating or inline notification flash
+// Display clean floating toast notification with automatic de-duplication
 function displayFlashMessage(message, type = 'info') {
     let flashContainer = document.querySelector('.flash-messages-container');
     if (!flashContainer) {
         flashContainer = document.createElement('div');
         flashContainer.className = 'flash-messages-container';
-        flashContainer.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            max-width: 480px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        `;
         document.body.appendChild(flashContainer);
+    }
+
+    // Check for identical existing alert and don't duplicate
+    const existingAlerts = flashContainer.querySelectorAll('.alert');
+    for (let el of existingAlerts) {
+        if (el.textContent.includes(message)) {
+            el.style.transform = 'scale(1.03)';
+            setTimeout(() => el.style.transform = 'scale(1)', 150);
+            return;
+        }
+    }
+
+    // Cap to maximum 3 simultaneous toasts
+    if (existingAlerts.length >= 3) {
+        existingAlerts[0].remove();
     }
 
     const alert = document.createElement('div');
     alert.className = `alert alert-${type}`;
-    alert.style.cssText = `
-        padding: 12px 18px;
-        border-radius: 8px;
-        font-size: 0.875rem;
-        font-weight: 500;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        background-color: ${type === 'success' ? '#ecfdf5' : type === 'danger' ? '#fef2f2' : type === 'warning' ? '#fffbeb' : '#eff6ff'};
-        color: ${type === 'success' ? '#065f46' : type === 'danger' ? '#991b1b' : type === 'warning' ? '#92400e' : '#1e40af'};
-        border: 1px solid ${type === 'success' ? '#a7f3d0' : type === 'danger' ? '#fecaca' : type === 'warning' ? '#fde68a' : '#bfdbfe'};
-        animation: slideIn 0.25s ease-out;
-    `;
 
     alert.innerHTML = `
         <div style="flex: 1;">${escapeHtml(message)}</div>
-        <button type="button" style="background: none; border: none; font-size: 18px; cursor: pointer; color: inherit; line-height: 1;" onclick="this.parentElement.remove()">×</button>
+        <button type="button" class="alert-close" onclick="dismissToast(this.parentElement)">&times;</button>
     `;
 
     flashContainer.appendChild(alert);
 
     setTimeout(() => {
-        if (alert.parentElement) {
-            alert.style.opacity = '0';
-            alert.style.transition = 'opacity 0.3s ease';
-            setTimeout(() => alert.remove(), 300);
-        }
-    }, 6000);
+        dismissToast(alert);
+    }, 3500);
+}
+
+function dismissToast(alertEl) {
+    if (!alertEl || !alertEl.parentElement) return;
+    alertEl.style.opacity = '0';
+    alertEl.style.transform = 'translateX(50px) scale(0.95)';
+    setTimeout(() => {
+        if (alertEl.parentElement) alertEl.remove();
+    }, 250);
 }
 
 function escapeHtml(text) {
